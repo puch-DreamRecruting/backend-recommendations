@@ -19,7 +19,7 @@ resources:
     name: puch-DreamRecruting/azure-infra
 
 variables:
-- name: recommendations
+- name: imageRepository
   value: 'puchdreamrecrutingbackendrecommendations'
 - name: dockerfilePath
   value:  '$(Build.SourcesDirectory)/Dockerfile'
