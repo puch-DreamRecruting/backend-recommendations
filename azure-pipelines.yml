@@ -1,0 +1,68 @@
+# Docker
+# Build and push an image to Azure Container Registry
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+  batch: true
+  branches:
+    include:
+    - master
+  paths:
+    exclude:
+    - README.md
+
+resources:
+  repositories:
+  - repository: AzureInfra # The name used to reference this repository in the checkout step
+    type: github
+    endpoint: puch-DreamRecruting
+    name: puch-DreamRecruting/azure-infra
+
+variables:
+- name: recommendations
+  value: 'puchdreamrecrutingbackendrecommendations'
+- name: dockerfilePath
+  value:  '$(Build.SourcesDirectory)/Statistics/Dockerfile'
+- name: tag
+  value: '$(Build.BuildId)'
+- name: vmImageName
+  value: 'ubuntu-latest'
+- group: 'common'
+- group: 'Backend Recommendations'
+
+stages:
+- stage: Build
+  displayName: Build and push stage
+  jobs:  
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - template: PipelinesTemplates/service-docker-build-publish.yml@AzureInfra
+      parameters:
+        imageRepository: '$(imageRepository)'
+        dockerfilePath: '$(Build.SourcesDirectory)/Statistics/Dockerfile'
+        dockerRegistryServiceConnection: '$(dockerRegistryServiceConnection)'
+        tag: '$(tag)'
+
+- stage: Deploy
+  displayName: Deploy Azure resources
+  jobs:  
+  - job: Deploy
+    displayName: Deploy Azure resources
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+      - template: PipelinesTemplates/service-azure-resources-deploy.yml@AzureInfra
+        parameters:
+          serviceResourceGroupName: '$(serviceResourceGroupName)'
+          webHostingPlanName: '$(webHostingPlanName)'
+          commonResourceGroupName: '$(commonResourceGroupName)'
+          siteName: '$(siteName)'
+          containerRegistryName: '$(containerRegistryName)'
+          imageRepository: '$(imageRepository)'
+          tag: '$(tag)'
+          commonApplicationInsightsName: '$(commonApplicationInsightsName)'
+          keyVaultName: '$(keyVaultName)'
+          subscriptionId: '$(subscriptionId)'
