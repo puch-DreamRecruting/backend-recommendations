@@ -1,18 +1,16 @@
-FROM ubuntu:16.04
+FROM python:3.7.1
 
-EXPOSE 4444
-
-RUN apt-get update -y && \
-    apt-get install -y python-pip python-dev
-
-COPY ./requirements.txt /app/requirements.txt
-
+RUN mkdir /app
 WORKDIR /app
+COPY * /app/
+
+RUN pip install --upgrade pip && \
+	pip install pipenv
 
 RUN pip install -r requirements.txt
 
-COPY . /app
+ADD . /app
 
-ENTRYPOINT [ "python" ]
+EXPOSE 4444
 
-CMD [ "./main.py" ]
+CMD python main.py
