@@ -22,7 +22,7 @@ variables:
 - name: recommendations
   value: 'puchdreamrecrutingbackendrecommendations'
 - name: dockerfilePath
-  value:  '$(Build.SourcesDirectory)/Recommendations/Dockerfile'
+  value:  '$(Build.SourcesDirectory)/Dockerfile'
 - name: tag
   value: '$(Build.BuildId)'
 - name: vmImageName
