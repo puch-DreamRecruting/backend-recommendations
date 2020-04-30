@@ -11,6 +11,7 @@ RUN pip install -r requirements.txt
 
 ADD . /app
 
-EXPOSE 4444
+EXPOSE 80
+EXPOSE 443
 
 CMD python main.py
