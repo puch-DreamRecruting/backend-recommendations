@@ -94,4 +94,4 @@ stages:
           csmFile: '$(Build.SourcesDirectory)/Templates/Services/Recommendations/recommendations.common.json'
           csmParametersFile: '$(Build.SourcesDirectory)/Templates/Services/Recommendations/recommendations.common.parameters.json'
           deploymentMode: 'Incremental'
-          overrideParameters: -keyVaultName $(keyVaultName) -sqlserverName $(sqlserverName) -sqlAdministratorLogin $(sqlAdministratorLogin) -sqlAdministratorLoginPassword $(sqlAdministratorLoginPassword) -databaseName $(databaseName)
+          overrideParameters: -keyVaultName $(keyVaultName) -sqlserverName $(sqlserverName) -sqlAdministratorLogin $(sqlAdministratorLogin) -sqlAdministratorLoginPassword $(sqlAdministratorLoginPassword) -databaseName $(databaseName) -serviceResourceGroupName $(serviceResourceGroupName)
