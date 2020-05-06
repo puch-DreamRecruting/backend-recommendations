@@ -66,3 +66,32 @@ stages:
           commonApplicationInsightsName: '$(commonApplicationInsightsName)'
           keyVaultName: '$(keyVaultName)'
           subscriptionId: '$(subscriptionId)'
+
+      - task: AzureResourceManagerTemplateDeployment@3
+        name: 'Deploy_offers_db'
+        inputs:
+          deploymentScope: 'Resource Group'
+          azureResourceManagerConnection: 'az-sub-sp'
+          subscriptionId: '$(subscriptionId)'
+          action: 'Create Or Update Resource Group'
+          resourceGroupName: '$(serviceResourceGroupName)'
+          location: 'West Europe'
+          templateLocation: 'Linked artifact'
+          csmFile: '$(Build.SourcesDirectory)/Templates/Services/database.mssql.json'
+          deploymentMode: 'Incremental'
+          overrideParameters: -sqlserverName $(sqlserverName) -sqlAdministratorLogin $(sqlAdministratorLogin) -sqlAdministratorLoginPassword $(sqlAdministratorLoginPassword) -databaseName $(databaseName)
+
+      - task: AzureResourceManagerTemplateDeployment@3
+        name: 'Deploy_offers_resources_common_rg'
+        inputs:
+          deploymentScope: 'Resource Group'
+          azureResourceManagerConnection: 'az-sub-sp'
+          subscriptionId: '$(subscriptionId)'
+          action: 'Create Or Update Resource Group'
+          resourceGroupName: '$(commonResourceGroupName)'
+          location: 'West Europe'
+          templateLocation: 'Linked artifact'
+          csmFile: '$(Build.SourcesDirectory)/Templates/Services/Recommendations/recommendations.common.json'
+          csmParametersFile: '$(Build.SourcesDirectory)/Templates/Services/Recommendations/recommendations.common.parameters.json'
+          deploymentMode: 'Incremental'
+          overrideParameters: -keyVaultName $(keyVaultName) -sqlserverName $(sqlserverName) -sqlAdministratorLogin $(sqlAdministratorLogin) -sqlAdministratorLoginPassword $(sqlAdministratorLoginPassword) -databaseName $(databaseName)
