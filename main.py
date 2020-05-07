@@ -1,4 +1,6 @@
 from src import app
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
 
 
 def main():
@@ -6,7 +8,4 @@ def main():
 
 
 if __name__ == '__main__':
-
-    
-
     main()
