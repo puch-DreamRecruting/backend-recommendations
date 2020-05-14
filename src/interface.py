@@ -1,8 +1,9 @@
-from flask import render_template, flash, redirect
+from flask import render_template, flash, redirect, request
 from flask_restplus import Resource, fields
 from src import app, api
-from src.objects import User, Recommendation, Offer, RecommendationsList
+from src.objects import User, Recommendation, Offer
 from src.database import Database
+import requests
 
 
 @app.route('/')
@@ -19,11 +20,13 @@ class MyRecommendations(Resource):
         return recommendations.serialize()
 
 
-@api.route('/postUser/<int:userId>/<string:tags>')
-@api.doc(params={'userId': 'an ID of a User',
-                 'tags': 'tags possessed by a User'})
+@api.route('/postUser/')
 class MyUsers(Resource):
-    def post(self, userId, tags):
+    def post(self):
+        data = request.get_json()
+        userId = data["id"]
+        tags = data["tags"]
+
         myUser = User(userId, tags)
         Database.add(myUser)
         return {'status': f'user {userId} with tags {tags} added'}
@@ -38,11 +41,24 @@ def count_matching_tags(offer: Offer, user: User) -> int:
     return counter
 
 
-@api.route('/postOffer/<int:offerId>/<string:tags>/<string:offerTitle>')
-@api.doc(params={'offerId': 'an ID of a new offer to add to users\' recommendations',
-                 'offerTitle': 'title of the offer being added'})
+def post_to_notifications(json):
+    print("sending recommendation...")
+    url = "https://dr-prod-euw-app-backend-notifications01.azurewebsites.net/api/v1/addRecommendationNotification/"
+    res = requests.post(
+        url,
+        json=json)
+    if res.status_code == 200:
+        print(res.text)
+
+
+@api.route('/postOffer/')
 class MyOffers(Resource):
-    def post(self, offerId, tags, offerTitle):
+    def post(self):
+        data = request.get_json()
+
+        offerId = data["id"]
+        tags = data["tags"]
+        offerTitle = data["title"]
         offer = Offer(offerId, tags, offerTitle)
         Database.add(offer)
 
@@ -60,5 +76,6 @@ class MyOffers(Resource):
                                                 userId=user.id,
                                                 offerTitle=offer.title)
                 Database.add(recommendation)
+                post_to_notifications(recommendation.serialize())
 
-        return {'status': f'offer {offerId} with tags {tags} added'}
+        return {'status': f'offer {data["id"]} (title: {data["title"]}) with tags {data["tags"]} added'}

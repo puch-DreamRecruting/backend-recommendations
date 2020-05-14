@@ -1,6 +1,6 @@
+from typing import List, Dict
 from abc import ABC, abstractmethod
 import datetime
-from typing import List, Dict
 
 
 def parse_tags(tags: str) -> List[str]:
@@ -28,7 +28,7 @@ class User(Serializable):
         super().__init__()
         self.name = "user" + str(userId)
         self.id = userId
-        self.tags = parse_tags(tags)
+        self.tags = tags  # parse_tags(tags)
 
     def serialize(self):
         JSONed = {}
@@ -54,7 +54,7 @@ class Offer(Serializable):
         super().__init__()
         self.name = "offer" + str(offerId)
         self.id = offerId
-        self.tags = parse_tags(tags)
+        self.tags = tags  # parse_tags(tags)
         self.title = title
 
     def serialize(self):
