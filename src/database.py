@@ -2,6 +2,7 @@ from src.objects import User, Recommendation, RecommendationsList
 from typing import List, Dict
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
+from os import environ
 import pyodbc
 
 
@@ -81,7 +82,8 @@ class Database:
     @staticmethod
     def get_connection_string() -> str:
         credential = DefaultAzureCredential()
-        secret_client = SecretClient(vault_url="https://dr-dev-euw-kv-common01.vault.azure.net/",
+        url = environ.get("KeyVaultUri")
+        secret_client = SecretClient(vault_url=url,
                                     credential=credential)
         db_connection_string = secret_client.get_secret("Recommendations-Database-ConnectionString").value
         db_config = Database.get_db_config(db_connection_string)
@@ -99,9 +101,6 @@ class Database:
             cnxn.commit()
         if not cursor.tables(table='tags').fetchone():
             cursor.execute(Database.create_table_tags)
-            cnxn.commit()
-        if not cursor.foreignKeys(table='tags'):
-            cursor.execute(Database.create_constraints)
             cnxn.commit()
         return cnxn, cursor
 
