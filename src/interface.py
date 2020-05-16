@@ -1,5 +1,5 @@
-from flask import render_template, flash, redirect, request
-from flask_restplus import Resource, fields
+from flask import render_template, request
+from flask_restplus import Resource
 from src import app, api
 from src.objects import User, Recommendation, Offer
 from src.database import Database
@@ -20,18 +20,6 @@ class MyRecommendations(Resource):
         return recommendations.serialize()
 
 
-@api.route('/postUser/')
-class MyUsers(Resource):
-    def post(self):
-        data = request.get_json()
-        userId = data["id"]
-        tags = data["tags"]
-
-        myUser = User(userId, tags)
-        Database.add(myUser)
-        return {'status': f'user {userId} with tags {tags} added'}
-
-
 def count_matching_tags(offer: Offer, user: User) -> int:
     counter = 0
     for offerTag in offer.tags:
@@ -44,26 +32,37 @@ def count_matching_tags(offer: Offer, user: User) -> int:
 def post_to_notifications(json):
     print("sending recommendation...")
     url = "https://dr-prod-euw-app-backend-notifications01.azurewebsites.net/api/v1/addRecommendationNotification/"
-    res = requests.post(
-        url,
-        json=json)
+    res = requests.post(url,
+                        json=json)
     if res.status_code == 200:
         print(res.text)
+
+
+@api.route('/postUser/')
+class MyUsers(Resource):
+    def post(self):
+        data = request.get_json()
+        userId = data["id"]
+        tags = data["tags"]
+
+        myUser = User(userId, tags)
+        Database.add_user(myUser)
+        return {'status': f'user {userId} with tags {tags} added'}
 
 
 @api.route('/postOffer/')
 class MyOffers(Resource):
     def post(self):
         data = request.get_json()
+        # data = request.get_json()['payload']
 
         offerId = data["id"]
         tags = data["tags"]
         offerTitle = data["title"]
         offer = Offer(offerId, tags, offerTitle)
-        Database.add(offer)
 
         # TODO:
-        # ask service Users for (id,tags) of all users that are looking for a job
+        # ask service Users for (id,tags) of all users that are looking for a job?
 
         users = Database.get_users()
         for user in users:
@@ -75,7 +74,13 @@ class MyOffers(Resource):
                                                 offerId=offer.id,
                                                 userId=user.id,
                                                 offerTitle=offer.title)
-                Database.add(recommendation)
+                Database.add_recommendation(recommendation)
                 post_to_notifications(recommendation.serialize())
 
-        return {'status': f'offer {data["id"]} (title: {data["title"]}) with tags {data["tags"]} added'}
+        return {'status': f'offer id={data["id"]} (title= {data["title"]}) with tags {data["tags"]} added'}
+
+    # @api.route('/clearRecommendationsDb/')
+    # class ClearRecommendations(Resource):
+    #     def post(self):
+    #         Database.clear_db()
+    #         return {'status': 'tables and data removed'}
