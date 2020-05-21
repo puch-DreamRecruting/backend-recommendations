@@ -53,8 +53,8 @@ class MyUsers(Resource):
 @api.route('/postOffer/')
 class MyOffers(Resource):
     def post(self):
-        data = request.get_json()
-        # data = request.get_json()['payload']
+        # data = request.get_json()
+        data = request.get_json()['payload']
 
         offerId = data["id"]
         tags = data["tags"]
