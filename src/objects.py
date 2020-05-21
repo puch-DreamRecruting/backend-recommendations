@@ -97,6 +97,23 @@ class Recommendation(Serializable):
         return recommendation
 
 
+class UsersList(Serializable):
+    list = []
+
+    def serialize(self):
+        JSONed = {}
+        JSONed['users'] = []
+        for i in self.list:
+            JSONed['users'].append(i.serialize())
+        return JSONed
+
+    def add(self, user: User):
+        self.list.append(user)
+
+    def clear(self):
+        self.list = []
+
+
 class RecommendationsList(Serializable):
     list = []
 

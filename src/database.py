@@ -1,4 +1,4 @@
-from src.objects import User, Recommendation, RecommendationsList
+from src.objects import User, Recommendation, UsersList, RecommendationsList
 from typing import List, Dict
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
@@ -86,6 +86,7 @@ class Database:
         secret_client = SecretClient(vault_url=url,
                                     credential=credential)
         db_connection_string = secret_client.get_secret("Recommendations-Database-ConnectionString").value
+        print(db_connection_string)
         db_config = Database.get_db_config(db_connection_string)
         return Database.get_odbc_connection_string(db_config)
 
@@ -121,8 +122,9 @@ class Database:
             Database.add(add_tag_sql)
 
     @staticmethod
-    def get_users() -> List[User]:
-        users = []
+    def get_users() -> UsersList:
+        users = UsersList()
+        users.clear()
 
         cnxn, cursor = Database.init_db()
         cursor.execute("SELECT * FROM users")
@@ -144,7 +146,7 @@ class Database:
                 tags.append(tag)
                 row = cursor.fetchone()
 
-            users.append(User(userId=userId, tags=tags))
+            users.add(User(userId=userId, tags=tags))
 
         return users
 

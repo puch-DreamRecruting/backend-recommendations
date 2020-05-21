@@ -20,6 +20,13 @@ class MyRecommendations(Resource):
         return recommendations.serialize()
 
 
+@api.route('/getUsers')
+class MyUsersList(Resource):
+    def get(self):
+        users = Database.get_users()
+        return users.serialize()
+
+
 def count_matching_tags(offer: Offer, user: User) -> int:
     counter = 0
     for offerTag in offer.tags:
@@ -53,8 +60,8 @@ class MyUsers(Resource):
 @api.route('/postOffer/')
 class MyOffers(Resource):
     def post(self):
-        # data = request.get_json()
-        data = request.get_json()['payload']
+        data_f = request.get_json()
+        data = data_f["payload"]
 
         offerId = data["id"]
         tags = data["tags"]
@@ -64,7 +71,7 @@ class MyOffers(Resource):
         # TODO:
         # ask service Users for (id,tags) of all users that are looking for a job?
 
-        users = Database.get_users()
+        users = Database.get_users().list
         for user in users:
             counter = count_matching_tags(offer, user)
             if counter > 2:
