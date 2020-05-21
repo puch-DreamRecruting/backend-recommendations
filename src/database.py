@@ -43,6 +43,8 @@ class Database:
     drop_table_users = "DROP TABLE users;"
     drop_table_recommendations = "DROP TABLE recommendations;"
     drop_table_tags = "DROP TABLE tags;"
+    connection_string_obtained = False
+    connection_string = ''
 
     @staticmethod
     def get_next_recommendation_id() -> int:
@@ -81,18 +83,21 @@ class Database:
 
     @staticmethod
     def get_connection_string() -> str:
-        credential = DefaultAzureCredential()
-        url = environ.get("KeyVaultUri")
-        secret_client = SecretClient(vault_url=url,
-                                    credential=credential)
-        db_connection_string = secret_client.get_secret("Recommendations-Database-ConnectionString").value
-        print(db_connection_string)
-        db_config = Database.get_db_config(db_connection_string)
-        return Database.get_odbc_connection_string(db_config)
+        if not Database.connection_string_obtained:
+            credential = DefaultAzureCredential()
+            url = environ.get("KeyVaultUri")
+            secret_client = SecretClient(vault_url=url, credential=credential)
+            db_connection_string = secret_client.get_secret("Recommendations-Database-ConnectionString").value
+            print(db_connection_string)
+            db_config = Database.get_db_config(db_connection_string)
+            Database.connection_string_obtained = True
+            Database.connection_string = Database.get_odbc_connection_string(db_config)
+        return Database.connection_string
 
     @staticmethod
     def init_db():
-        cnxn = pyodbc.connect(Database.get_connection_string())
+        odbc_connection_string = Database.get_connection_string()
+        cnxn = pyodbc.connect(odbc_connection_string)
         cursor = cnxn.cursor()
         if not cursor.tables(table='users').fetchone():
             cursor.execute(Database.create_table_users)
@@ -161,23 +166,42 @@ class Database:
         recommendations = RecommendationsList()
         recommendations.clear()
 
-        cnxn, cursor = Database.init_db()
-        cursor.execute(f"SELECT * FROM recommendations WHERE userId={id};")
+        if id > 15000:
+            cnxn, cursor = Database.init_db()
+            cursor.execute(f"SELECT * FROM recommendations;")
 
-        raw_recommendations = []
-        row = cursor.fetchone()
-        while row:
-            raw_recommendations.append(row)
+            raw_recommendations = []
             row = cursor.fetchone()
+            while row:
+                raw_recommendations.append(row)
+                row = cursor.fetchone()
 
-        for raw_recommendation in raw_recommendations:
-            recommendationId = raw_recommendation[0]
-            userId = raw_recommendation[1]
-            offerId = raw_recommendation[2]
-            offerTitle = raw_recommendation[3]
-            creationDate = raw_recommendation[4]
-            recommendation = Recommendation(recommendationId, offerId, userId, offerTitle)
-            recommendations.add(recommendation)
+            for raw_recommendation in raw_recommendations:
+                recommendationId = raw_recommendation[0]
+                userId = raw_recommendation[1]
+                offerId = raw_recommendation[2]
+                offerTitle = raw_recommendation[3]
+                creationDate = raw_recommendation[4]
+                recommendation = Recommendation(recommendationId, offerId, userId, offerTitle)
+                recommendations.add(recommendation)
+        else:
+            cnxn, cursor = Database.init_db()
+            cursor.execute(f"SELECT * FROM recommendations WHERE userId={id};")
+
+            raw_recommendations = []
+            row = cursor.fetchone()
+            while row:
+                raw_recommendations.append(row)
+                row = cursor.fetchone()
+
+            for raw_recommendation in raw_recommendations:
+                recommendationId = raw_recommendation[0]
+                userId = raw_recommendation[1]
+                offerId = raw_recommendation[2]
+                offerTitle = raw_recommendation[3]
+                creationDate = raw_recommendation[4]
+                recommendation = Recommendation(recommendationId, offerId, userId, offerTitle)
+                recommendations.add(recommendation)
 
         return recommendations
 

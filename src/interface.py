@@ -68,9 +68,6 @@ class MyOffers(Resource):
         offerTitle = data["title"]
         offer = Offer(offerId, tags, offerTitle)
 
-        # TODO:
-        # ask service Users for (id,tags) of all users that are looking for a job?
-
         users = Database.get_users().list
         for user in users:
             counter = count_matching_tags(offer, user)
