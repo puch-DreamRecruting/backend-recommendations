@@ -25,7 +25,7 @@ msrest==0.6.13
 oauthlib==3.1.0
 portalocker==1.7.0
 pycparser==2.20
-PyJWT==1.7.1
+PyJWT==2.4.0
 pyodbc==4.0.30
 pyrsistent==0.16.0
 pytz==2020.1
